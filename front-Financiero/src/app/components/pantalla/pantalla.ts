@@ -6,20 +6,20 @@ import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 const PALETA = {
-  verde:      '#00e5a0',
-  rojo:       '#ff4d6d',
-  azul:       '#4d9fff',
-  amarillo:   '#ffd166',
-  purpura:    '#c77dff',
-  cyan:       '#06d6a0',
-  naranja:    '#ff9a3c',
-  rosa:       '#ff6b9d',
-  indigo:     '#5e60ce',
-  lima:       '#b5e48c',
-  fondo:      '#0d1117',
-  borde:      '#1e2533',
-  texto:      '#c9d1d9',
-  textoSub:   '#6e7681',
+  verde: '#00e5a0',
+  rojo: '#ff4d6d',
+  azul: '#4d9fff',
+  amarillo: '#ffd166',
+  purpura: '#c77dff',
+  cyan: '#06d6a0',
+  naranja: '#ff9a3c',
+  rosa: '#ff6b9d',
+  indigo: '#5e60ce',
+  lima: '#b5e48c',
+  fondo: '#0d1117',
+  borde: '#1e2533',
+  texto: '#c9d1d9',
+  textoSub: '#6e7681',
 };
 
 @Component({
@@ -30,24 +30,19 @@ const PALETA = {
   styleUrls: ['./pantalla.css']
 })
 export class Pantalla implements OnDestroy {
-
   dashboard: any = null;
   private graficos: (Chart | null)[] = [null, null, null, null, null];
 
   constructor(private api: ApiService) {}
 
-  cargar() {
-    this.api.obtenerDashboard().subscribe({
+  cargar(periodo?: string) {
+    this.api.obtenerDashboard(periodo).subscribe({
       next: (res: any) => {
         this.dashboard = res;
         setTimeout(() => this.generarGraficos(), 150);
       },
       error: () => alert('Error cargando dashboard')
     });
-  }
-
-  min(a: number, b: number): number {
-    return Math.min(a, b);
   }
 
   porcentaje(monto: number): number {
@@ -61,30 +56,42 @@ export class Pantalla implements OnDestroy {
   }
 
   private destruirGraficos() {
-    this.graficos.forEach((g, i) => { g?.destroy(); this.graficos[i] = null; });
+    this.graficos.forEach((g, i) => {
+      g?.destroy();
+      this.graficos[i] = null;
+    });
   }
 
   private generarGraficos() {
     this.destruirGraficos();
 
-    const ev         = this.dashboard.evolucion || [];
-    const periodos   = ev.map((e: any) => e.periodo);
-    const ingresos   = ev.map((e: any) => e.ingreso);
+    const ev = this.dashboard?.evolucion || [];
+    const periodos = ev.map((e: any) => e.periodo);
+    const ingresos = ev.map((e: any) => e.ingreso);
     const egresosEvo = ev.map((e: any) => e.egreso);
-    const utilidades = ev.map((e: any) => e.utilidad);
+    const saldos = ev.map((e: any) => e.saldo ?? ((e.ingreso ?? 0) - (e.egreso ?? 0)));
 
-    const categorias = (this.dashboard.por_categoria || []).map((c: any) => c.categoria);
-    const montosEgr  = (this.dashboard.por_categoria || []).map((c: any) => c.monto);
+    const categorias = (this.dashboard?.por_categoria || []).map((c: any) => c.categoria);
+    const montosEgr = (this.dashboard?.por_categoria || []).map((c: any) => c.monto);
 
-    const tiposIng    = (this.dashboard.por_tipo_ingreso || []).map((t: any) => t.tipo);
-    const montosIng   = (this.dashboard.por_tipo_ingreso || []).map((t: any) => t.monto);
+    const tiposIng = (this.dashboard?.por_tipo_ingreso || []).map((t: any) => t.tipo);
+    const montosIng = (this.dashboard?.por_tipo_ingreso || []).map((t: any) => t.monto);
 
-    const areas       = (this.dashboard.por_area || []).map((a: any) => a.area);
-    const montosArea  = (this.dashboard.por_area || []).map((a: any) => a.monto);
+    const planReal = this.dashboard?.plan_vs_real || [];
+    const categoriasPlan = planReal.map((p: any) => p.categoria);
+    const montosPlan = planReal.map((p: any) => p.planificado);
+    const montosReal = planReal.map((p: any) => p.real);
 
     const coloresPaleta = [
-      PALETA.verde, PALETA.azul, PALETA.amarillo, PALETA.purpura,
-      PALETA.naranja, PALETA.rosa, PALETA.cyan, PALETA.indigo, PALETA.lima
+      PALETA.verde,
+      PALETA.azul,
+      PALETA.amarillo,
+      PALETA.purpura,
+      PALETA.naranja,
+      PALETA.rosa,
+      PALETA.cyan,
+      PALETA.indigo,
+      PALETA.lima
     ];
 
     const defaultOpts = {
@@ -92,7 +99,12 @@ export class Pantalla implements OnDestroy {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          labels: { color: PALETA.texto, font: { size: 11 }, padding: 16, boxWidth: 12 }
+          labels: {
+            color: PALETA.texto,
+            font: { size: 11 },
+            padding: 16,
+            boxWidth: 12
+          }
         },
         tooltip: {
           backgroundColor: '#161b22',
@@ -100,25 +112,21 @@ export class Pantalla implements OnDestroy {
           borderWidth: 1,
           titleColor: PALETA.texto,
           bodyColor: PALETA.textoSub,
-          padding: 12,
-          callbacks: {
-            label: (ctx: any) => ` ${ctx.dataset.label || ctx.label}: $${Number(ctx.parsed.y ?? ctx.parsed ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}`
-          }
+          padding: 12
         }
       },
       scales: {
         x: {
           ticks: { color: PALETA.textoSub, font: { size: 11 } },
-          grid:  { color: 'rgba(255,255,255,0.04)' }
+          grid: { color: 'rgba(255,255,255,0.04)' }
         },
         y: {
           ticks: { color: PALETA.textoSub, font: { size: 11 } },
-          grid:  { color: 'rgba(255,255,255,0.04)' }
+          grid: { color: 'rgba(255,255,255,0.04)' }
         }
       }
     };
 
-    // ── G1: Evolución temporal (línea con área) ──
     const c1 = this.ctx('grafico1');
     if (c1) {
       this.graficos[0] = new Chart(c1, {
@@ -131,27 +139,36 @@ export class Pantalla implements OnDestroy {
               data: ingresos,
               borderColor: PALETA.verde,
               backgroundColor: 'rgba(0,229,160,0.08)',
-              tension: 0.4, fill: true,
+              tension: 0.4,
+              fill: true,
               pointBackgroundColor: PALETA.verde,
-              pointRadius: 5, pointHoverRadius: 8, borderWidth: 2
+              pointRadius: 5,
+              pointHoverRadius: 8,
+              borderWidth: 2
             },
             {
-              label: 'Egresos',
+              label: 'Gastos',
               data: egresosEvo,
               borderColor: PALETA.rojo,
               backgroundColor: 'rgba(255,77,109,0.08)',
-              tension: 0.4, fill: true,
+              tension: 0.4,
+              fill: true,
               pointBackgroundColor: PALETA.rojo,
-              pointRadius: 5, pointHoverRadius: 8, borderWidth: 2
+              pointRadius: 5,
+              pointHoverRadius: 8,
+              borderWidth: 2
             },
             {
-              label: 'Utilidad',
-              data: utilidades,
+              label: 'Saldo',
+              data: saldos,
               borderColor: PALETA.amarillo,
               backgroundColor: 'rgba(255,209,102,0.06)',
-              tension: 0.4, fill: false,
+              tension: 0.4,
+              fill: false,
               pointBackgroundColor: PALETA.amarillo,
-              pointRadius: 5, pointHoverRadius: 8, borderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 8,
+              borderWidth: 2,
               borderDash: [5, 3]
             }
           ]
@@ -163,15 +180,14 @@ export class Pantalla implements OnDestroy {
       });
     }
 
-    // ── G2: Egresos por categoría (barras horizontales) ──
     const c2 = this.ctx('grafico2');
     if (c2) {
       this.graficos[1] = new Chart(c2, {
         type: 'bar',
         data: {
-          labels: categorias.length ? categorias : ['Sin egresos'],
+          labels: categorias.length ? categorias : ['Sin gastos'],
           datasets: [{
-            label: 'Egreso',
+            label: 'Gasto',
             data: montosEgr,
             backgroundColor: coloresPaleta.slice(0, categorias.length).map(c => c + 'cc'),
             borderRadius: 5,
@@ -189,7 +205,6 @@ export class Pantalla implements OnDestroy {
       });
     }
 
-    // ── G3: Tipos de ingreso (donut) ──
     const c3 = this.ctx('grafico3');
     if (c3) {
       this.graficos[2] = new Chart(c3, {
@@ -207,51 +222,50 @@ export class Pantalla implements OnDestroy {
         options: {
           ...defaultOpts,
           cutout: '65%',
-          scales: undefined,
-          plugins: {
-            ...defaultOpts.plugins,
-            tooltip: {
-              ...defaultOpts.plugins.tooltip,
-              callbacks: {
-                label: (ctx: any) => ` ${ctx.label}: $${Number(ctx.parsed ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}`
-              }
-            }
-          }
+          scales: undefined
         } as any
       });
     }
 
-    // ── G4: Utilidad por período (barras con color condicional) ──
     const c4 = this.ctx('grafico4');
     if (c4) {
       this.graficos[3] = new Chart(c4, {
         type: 'bar',
         data: {
-          labels: periodos.length ? periodos : ['Sin datos'],
-          datasets: [{
-            label: 'Utilidad neta',
-            data: utilidades,
-            backgroundColor: utilidades.map((u: number) =>
-              u >= 0 ? 'rgba(0,229,160,0.75)' : 'rgba(255,77,109,0.75)'
-            ),
-            borderRadius: 6,
-            borderSkipped: false
-          }]
+          labels: categoriasPlan.length ? categoriasPlan : ['Sin presupuesto'],
+          datasets: [
+            {
+              label: 'Planificado',
+              data: montosPlan,
+              backgroundColor: 'rgba(77,159,255,0.75)',
+              borderRadius: 6,
+              borderSkipped: false
+            },
+            {
+              label: 'Real',
+              data: montosReal,
+              backgroundColor: 'rgba(255,77,109,0.75)',
+              borderRadius: 6,
+              borderSkipped: false
+            }
+          ]
         },
         options: defaultOpts as any
       });
     }
 
-    // ── G5: Egresos por área (donut) ──
     const c5 = this.ctx('grafico5');
     if (c5) {
       this.graficos[4] = new Chart(c5, {
         type: 'doughnut',
         data: {
-          labels: areas.length ? areas : ['Sin datos'],
+          labels: ['Presupuesto planificado', 'Gasto real'],
           datasets: [{
-            data: montosArea.length ? montosArea : [1],
-            backgroundColor: [PALETA.purpura, PALETA.cyan, PALETA.naranja, PALETA.rosa, PALETA.indigo, PALETA.lima, PALETA.azul],
+            data: [
+              this.dashboard?.presupuesto_total || 0,
+              this.dashboard?.total_egreso || 0
+            ],
+            backgroundColor: [PALETA.azul, PALETA.rojo],
             borderColor: PALETA.fondo,
             borderWidth: 3,
             hoverOffset: 8
@@ -260,20 +274,13 @@ export class Pantalla implements OnDestroy {
         options: {
           ...defaultOpts,
           cutout: '65%',
-          scales: undefined,
-          plugins: {
-            ...defaultOpts.plugins,
-            tooltip: {
-              ...defaultOpts.plugins.tooltip,
-              callbacks: {
-                label: (ctx: any) => ` ${ctx.label}: $${Number(ctx.parsed ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}`
-              }
-            }
-          }
+          scales: undefined
         } as any
       });
     }
   }
 
-  ngOnDestroy() { this.destruirGraficos(); }
+  ngOnDestroy() {
+    this.destruirGraficos();
+  }
 }

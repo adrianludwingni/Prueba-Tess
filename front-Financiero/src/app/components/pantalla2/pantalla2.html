@@ -1,251 +1,197 @@
-<!-- Fondo decorativo -->
-<div class="bg-orb orb-a"></div>
-<div class="bg-orb orb-b"></div>
-<div class="bg-orb orb-c"></div>
-
-<!-- Header empresa -->
-<header class="empresa-header">
-  <div class="header-left">
-    <div class="logo-mark">
-      <span class="logo-icon">◈</span>
-      <div class="logo-text">
-        <span class="logo-title">FinanzasPro</span>
-        <span class="logo-sub">Sistema de Gestión Empresarial</span>
+<div class="pantalla2-container">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">◈</div>
+      <div class="brand-text">
+        <h1>Sistema de Seguimiento Financiero Personal</h1>
       </div>
     </div>
-  </div>
-  <div class="header-right">
-    <div class="user-chip">
-      <div class="user-avatar">{{ nombreUsuario.charAt(0).toUpperCase() }}</div>
+
+    <div class="user-box">
+      <div class="avatar">
+        {{ nombreUsuario.charAt(0).toUpperCase() }}
+      </div>
       <div class="user-info">
-        <span class="user-name">{{ nombreUsuario }}</span>
-        <span class="user-empresa">{{ empresaUsuario || correoUsuario }}</span>
+        <div class="user-name">{{ nombreUsuario }}</div>
+        <div class="user-mail">{{ correoUsuario }}</div>
       </div>
+
+      <button type="button" (click)="cerrarSesion()">
+        ⏻ Salir
+      </button>
     </div>
-    <button class="btn-logout" (click)="cerrarSesion()">
-      <span class="btn-logout-icon">⏻</span>
-      Salir
+  </header>
+
+  <nav class="tabs">
+    <button type="button" [class.active]="seccionActiva === 'ingresos'" (click)="seccionActiva = 'ingresos'">
+      ↑ Ingresos
     </button>
-  </div>
-</header>
+    <button type="button" [class.active]="seccionActiva === 'egresos'" (click)="seccionActiva = 'egresos'">
+      ↓ Egresos
+    </button>
+    <button type="button" [class.active]="seccionActiva === 'presupuesto'" (click)="seccionActiva = 'presupuesto'">
+      ◎ Presupuesto
+    </button>
+    <button type="button" [class.active]="seccionActiva === 'dashboard'" (click)="seccionActiva = 'dashboard'">
+      ▦ Dashboard
+    </button>
+    <button type="button" [class.active]="seccionActiva === 'reporte'" (click)="seccionActiva = 'reporte'">
+      ◉ Reporte
+    </button>
+  </nav>
 
-<!-- Navegación de secciones -->
-<nav class="seccion-nav">
-  <button class="nav-tab" [class.activo]="seccionActiva === 'ingresos'" (click)="seccionActiva = 'ingresos'">
-    <span>↑</span> Ingresos
-  </button>
-  <button class="nav-tab" [class.activo]="seccionActiva === 'egresos'" (click)="seccionActiva = 'egresos'">
-    <span>↓</span> Egresos
-  </button>
-  <button class="nav-tab" [class.activo]="seccionActiva === 'presupuesto'" (click)="seccionActiva = 'presupuesto'">
-    <span>◎</span> Presupuesto
-  </button>
-  <button class="nav-tab" [class.activo]="seccionActiva === 'dashboard'" (click)="seccionActiva = 'dashboard'; cargarDashboard()">
-    <span>▦</span> Dashboard
-  </button>
-  <button class="nav-tab" [class.activo]="seccionActiva === 'reporte'" (click)="seccionActiva = 'reporte'">
-    <span>◉</span> Reporte
-  </button>
-</nav>
+  <section *ngIf="seccionActiva === 'ingresos'" class="panel">
+    <h2>↑ Registro de Ingresos</h2>
+    <p>Registra ingresos personales por período para el control financiero mensual.</p>
 
-<!-- ─── SECCIÓN: INGRESOS ─── -->
-<section class="seccion-panel" *ngIf="seccionActiva === 'ingresos'">
-  <div class="panel-header">
-    <h2 class="panel-titulo"><span class="panel-icon ingreso-color">↑</span> Registro de Ingresos</h2>
-    <p class="panel-desc">Registra los ingresos operacionales y no operacionales de la empresa</p>
-  </div>
-
-  <div class="form-empresa">
-    <div class="form-row">
-      <div class="form-field">
-        <label class="form-label">Período</label>
-        <input type="month" class="form-input" [(ngModel)]="ingreso.periodo_clave">
+    <div class="form-grid">
+      <div class="field">
+        <label>Período</label>
+        <input type="month" [(ngModel)]="ingreso.periodo_clave" />
       </div>
-      <div class="form-field">
-        <label class="form-label">Tipo de ingreso</label>
-        <select class="form-select" [(ngModel)]="ingreso.tipo">
+
+      <div class="field">
+        <label>Tipo de ingreso</label>
+        <select [(ngModel)]="ingreso.tipo">
           <option value="">Seleccionar tipo</option>
           <option *ngFor="let t of catalogos.tipos_ingreso" [value]="t">{{ t }}</option>
         </select>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-field">
-        <label class="form-label">Área / Departamento</label>
-        <select class="form-select" [(ngModel)]="ingreso.area">
-          <option value="">Seleccionar área</option>
-          <option *ngFor="let a of catalogos.areas" [value]="a">{{ a }}</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label class="form-label">Monto (USD)</label>
-        <div class="input-money">
-          <span class="money-prefix">$</span>
-          <input type="number" class="form-input money-input" placeholder="0.00" [(ngModel)]="ingreso.monto_ingreso" min="0" step="0.01">
+
+      <div class="field">
+        <label>Monto (USD)</label>
+        <div class="input-prefix">
+          <span>$</span>
+          <input type="number" step="0.01" [(ngModel)]="ingreso.monto_ingreso" />
         </div>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-field full">
-        <label class="form-label">Descripción / Referencia</label>
-        <input type="text" class="form-input" placeholder="Ej: Factura #001 - Cliente XYZ" [(ngModel)]="ingreso.descripcion">
+
+      <div class="field full">
+        <label>Descripción / Referencia</label>
+        <textarea rows="3" [(ngModel)]="ingreso.descripcion"></textarea>
       </div>
     </div>
-    <div class="form-actions">
-      <button class="btn-primary btn-ingreso" (click)="guardarIngreso()" [disabled]="cargando">
-        <span *ngIf="!cargando">✓ Registrar ingreso</span>
-        <span *ngIf="cargando" class="loading-dots">Guardando</span>
+
+    <div class="actions">
+      <button type="button" (click)="guardarIngreso()" [disabled]="cargando">
+        {{ cargando ? 'Guardando' : '✓ Registrar ingreso' }}
       </button>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ─── SECCIÓN: EGRESOS ─── -->
-<section class="seccion-panel" *ngIf="seccionActiva === 'egresos'">
-  <div class="panel-header">
-    <h2 class="panel-titulo"><span class="panel-icon egreso-color">↓</span> Registro de Egresos</h2>
-    <p class="panel-desc">Registra los gastos operacionales, administrativos y financieros</p>
-  </div>
+  <section *ngIf="seccionActiva === 'egresos'" class="panel">
+    <h2>↓ Registro de Egresos</h2>
+    <p>Registra gastos personales por período usando categorías predefinidas.</p>
 
-  <div class="form-empresa">
-    <div class="form-row">
-      <div class="form-field">
-        <label class="form-label">Período</label>
-        <input type="month" class="form-input" [(ngModel)]="gasto.periodo_clave">
+    <div class="form-grid">
+      <div class="field">
+        <label>Período</label>
+        <input type="month" [(ngModel)]="gasto.periodo_clave" />
       </div>
-      <div class="form-field">
-        <label class="form-label">Categoría de egreso</label>
-        <select class="form-select" [(ngModel)]="gasto.categoria">
+
+      <div class="field">
+        <label>Categoría de gasto</label>
+        <select [(ngModel)]="gasto.categoria">
           <option value="">Seleccionar categoría</option>
           <option *ngFor="let c of catalogos.categorias_egreso" [value]="c">{{ c }}</option>
         </select>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-field">
-        <label class="form-label">Área responsable</label>
-        <select class="form-select" [(ngModel)]="gasto.area">
-          <option value="">Seleccionar área</option>
-          <option *ngFor="let a of catalogos.areas" [value]="a">{{ a }}</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label class="form-label">Monto (USD)</label>
-        <div class="input-money">
-          <span class="money-prefix">$</span>
-          <input type="number" class="form-input money-input" placeholder="0.00" [(ngModel)]="gasto.monto" min="0" step="0.01">
+
+      <div class="field">
+        <label>Monto (USD)</label>
+        <div class="input-prefix">
+          <span>$</span>
+          <input type="number" step="0.01" [(ngModel)]="gasto.monto" />
         </div>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-field">
-        <label class="form-label">Proveedor / Beneficiario</label>
-        <input type="text" class="form-input" placeholder="Nombre del proveedor" [(ngModel)]="gasto.proveedor">
-      </div>
-      <div class="form-field">
-        <label class="form-label">Descripción</label>
-        <input type="text" class="form-input" placeholder="Concepto del egreso" [(ngModel)]="gasto.descripcion">
+
+      <div class="field full">
+        <label>Descripción</label>
+        <textarea rows="3" [(ngModel)]="gasto.descripcion"></textarea>
       </div>
     </div>
-    <div class="form-actions">
-      <button class="btn-primary btn-egreso" (click)="guardarGasto()" [disabled]="cargando">
-        <span *ngIf="!cargando">✓ Registrar egreso</span>
-        <span *ngIf="cargando" class="loading-dots">Guardando</span>
+
+    <div class="actions">
+      <button type="button" (click)="guardarGasto()" [disabled]="cargando">
+        {{ cargando ? 'Guardando' : '✓ Registrar egreso' }}
       </button>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ─── SECCIÓN: PRESUPUESTO ─── -->
-<section class="seccion-panel" *ngIf="seccionActiva === 'presupuesto'">
-  <div class="panel-header">
-    <h2 class="panel-titulo"><span class="panel-icon presupuesto-color">◎</span> Definir Presupuesto</h2>
-    <p class="panel-desc">Establece metas de ingreso y presupuesto de gastos por período</p>
-  </div>
+  <section *ngIf="seccionActiva === 'presupuesto'" class="panel">
+    <h2>◎ Definir Presupuesto</h2>
+    <p>Establece el presupuesto mensual por categorías predefinidas.</p>
 
-  <div class="form-empresa">
-    <div class="form-row">
-      <div class="form-field">
-        <label class="form-label">Período</label>
-        <input type="month" class="form-input" [(ngModel)]="presupuesto.periodo">
+    <div class="form-grid">
+      <div class="field">
+        <label>Período</label>
+        <input type="month" [(ngModel)]="presupuesto.periodo" />
       </div>
-      <div class="form-field">
-        <label class="form-label">Meta de ingresos (USD)</label>
-        <div class="input-money">
-          <span class="money-prefix">$</span>
-          <input type="number" class="form-input money-input" placeholder="0.00" [(ngModel)]="presupuesto.meta_ingresos" min="0">
+    </div>
+
+    <div class="budget-table">
+      <div class="budget-row budget-head">
+        <div>Categoría</div>
+        <div>Monto planificado (USD)</div>
+      </div>
+
+      <div class="budget-row" *ngFor="let item of presupuesto.categorias; let i = index">
+        <div>{{ item.categoria }}</div>
+        <div class="input-prefix">
+          <span>$</span>
+          <input type="number" step="0.01" [(ngModel)]="presupuesto.categorias[i].monto" />
         </div>
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-field">
-        <label class="form-label">Presupuesto de egresos (USD)</label>
-        <div class="input-money">
-          <span class="money-prefix">$</span>
-          <input type="number" class="form-input money-input" placeholder="0.00" [(ngModel)]="presupuesto.presupuesto_total" min="0">
-        </div>
-      </div>
-    </div>
-    <div class="form-actions">
-      <button class="btn-primary btn-presupuesto" (click)="guardarPresupuesto()" [disabled]="cargando">
-        <span *ngIf="!cargando">✓ Guardar presupuesto</span>
-        <span *ngIf="cargando" class="loading-dots">Guardando</span>
+
+    <div class="actions">
+      <button type="button" (click)="guardarPresupuesto()" [disabled]="cargando">
+        {{ cargando ? 'Guardando' : '✓ Guardar presupuesto' }}
       </button>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ─── SECCIÓN: DASHBOARD ─── -->
-<section class="seccion-panel dashboard-seccion" *ngIf="seccionActiva === 'dashboard'">
-  <div class="panel-header dashboard-panel-header">
-    <h2 class="panel-titulo"><span class="panel-icon dash-color">▦</span> Dashboard Financiero</h2>
-    <div class="dashboard-actions">
-      <select class="form-select periodo-select" [(ngModel)]="filtroPeriodo" (change)="cargarDashboard()">
+  <section *ngIf="seccionActiva === 'dashboard'" class="panel">
+    <h2>▦ Dashboard Financiero</h2>
+
+    <div class="dashboard-toolbar">
+      <select [(ngModel)]="filtroPeriodo">
         <option value="">Todos los períodos</option>
         <option *ngFor="let p of periodosDisponibles" [value]="p">{{ p }}</option>
       </select>
-      <button class="btn-outline" (click)="cargarDashboard()">↺ Actualizar</button>
+
+      <button type="button" (click)="cargarDashboard()">↺ Actualizar</button>
     </div>
-  </div>
-  <app-pantalla #pantallaRef></app-pantalla>
-</section>
 
-<!-- ─── SECCIÓN: REPORTE ─── -->
-<section class="seccion-panel" *ngIf="seccionActiva === 'reporte'">
-  <div class="panel-header">
-    <h2 class="panel-titulo"><span class="panel-icon reporte-color">◉</span> Enviar Reporte</h2>
-    <p class="panel-desc">Genera y envía el reporte financiero consolidado al administrador</p>
-  </div>
+    <app-pantalla #pantallaRef></app-pantalla>
+  </section>
 
-  <div class="reporte-card">
-    <div class="reporte-icon">📄</div>
-    <h3>Reporte Financiero Empresarial</h3>
-    <p>Se incluirá un resumen de ingresos, egresos, utilidad neta, márgenes y análisis por categoría y área para su revisión administrativa.</p>
-    <div class="reporte-info">
-      <div class="reporte-dato">
-        <span class="reporte-dato-label">Empresa</span>
-        <span class="reporte-dato-val">{{ empresaUsuario || 'No especificada' }}</span>
-      </div>
-      <div class="reporte-dato">
-        <span class="reporte-dato-label">Usuario</span>
-        <span class="reporte-dato-val">{{ nombreUsuario }}</span>
-      </div>
-      <div class="reporte-dato">
-        <span class="reporte-dato-label">Correo</span>
-        <span class="reporte-dato-val">{{ correoUsuario }}</span>
+  <section *ngIf="seccionActiva === 'reporte'" class="panel">
+    <h2>◉ Enviar Reporte</h2>
+    <p>Genera y envía el reporte financiero personal consolidado al administrador.</p>
+
+    <div class="report-box">
+      <h3>Reporte Financiero Personal</h3>
+      <p>
+        Se incluirá un resumen de ingresos, gastos, saldo disponible,
+        presupuesto planificado, análisis de gasto por categoría,
+        comparación planificado vs real y tendencia mensual.
+      </p>
+
+      <div class="report-meta">
+        <div><strong>Usuario:</strong> {{ nombreUsuario }}</div>
+        <div><strong>Correo:</strong> {{ correoUsuario }}</div>
       </div>
     </div>
-    <button class="btn-primary btn-reporte" (click)="enviarReporte()" [disabled]="cargando">
-      <span *ngIf="!cargando">◉ Enviar reporte al administrador</span>
-      <span *ngIf="cargando" class="loading-dots">Enviando reporte</span>
-    </button>
-  </div>
-</section>
 
-<!-- Toast de mensaje -->
-<div class="toast-container" *ngIf="mensaje">
-  <div class="toast" [class.toast-ok]="tipoMensaje === 'ok'" [class.toast-error]="tipoMensaje === 'error'">
-    <span class="toast-icon">{{ tipoMensaje === 'ok' ? '✓' : '✗' }}</span>
-    {{ mensaje }}
+    <div class="actions">
+      <button type="button" (click)="enviarReporte()" [disabled]="cargando">
+        {{ cargando ? 'Enviando reporte' : '◉ Enviar reporte al administrador' }}
+      </button>
+    </div>
+  </section>
+
+  <div *ngIf="mensaje" class="mensaje" [ngClass]="tipoMensaje">
+    {{ tipoMensaje === 'ok' ? '✓' : '✗' }} {{ mensaje }}
   </div>
 </div>
