@@ -1,0 +1,265 @@
+<div class="bg-orb orb-admin-a"></div>
+<div class="bg-orb orb-admin-b"></div>
+
+<header class="admin-header">
+  <div class="admin-brand">
+    <span class="admin-brand-icon">◈</span>
+    <div>
+      <span class="admin-brand-title">FinanzasPro</span>
+      <span class="admin-brand-badge">Panel Administrador</span>
+    </div>
+  </div>
+  <button class="btn-logout-admin" (click)="cerrarSesion()">⏻ Cerrar sesión</button>
+</header>
+
+<section class="admin-kpi-section" *ngIf="resumenGlobal">
+  <div class="admin-kpi-grid">
+    <div class="admin-kpi-card">
+      <span class="admin-kpi-icon usuarios">👥</span>
+      <div class="admin-kpi-body">
+        <span class="admin-kpi-label">Usuarios activos</span>
+        <span class="admin-kpi-valor">{{ resumenGlobal.total_usuarios }}</span>
+      </div>
+    </div>
+
+    <div class="admin-kpi-card">
+      <span class="admin-kpi-icon ingresos">↑</span>
+      <div class="admin-kpi-body">
+        <span class="admin-kpi-label">Ingresos globales</span>
+        <span class="admin-kpi-valor verde">${{ resumenGlobal.total_ingresos | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <div class="admin-kpi-card">
+      <span class="admin-kpi-icon egresos">↓</span>
+      <div class="admin-kpi-body">
+        <span class="admin-kpi-label">Egresos globales</span>
+        <span class="admin-kpi-valor rojo">${{ resumenGlobal.total_egresos | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <div class="admin-kpi-card">
+      <span class="admin-kpi-icon utilidad">≡</span>
+      <div class="admin-kpi-body">
+        <span class="admin-kpi-label">Utilidad global</span>
+        <span class="admin-kpi-valor"
+              [class.verde]="resumenGlobal.utilidad_global >= 0"
+              [class.rojo]="resumenGlobal.utilidad_global < 0">
+          ${{ resumenGlobal.utilidad_global | number:'1.2-2' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="admin-kpi-card">
+      <span class="admin-kpi-icon reportes-icon">◉</span>
+      <div class="admin-kpi-body">
+        <span class="admin-kpi-label">Reportes recibidos</span>
+        <span class="admin-kpi-valor azul">{{ reportes.length }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="admin-tabla-section">
+  <div class="admin-tabla-header">
+    <h2 class="admin-titulo">Reportes financieros</h2>
+    <div class="admin-tabla-actions">
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar por nombre, correo o empresa..."
+          [(ngModel)]="busqueda"
+          [ngModelOptions]="{standalone: true}">
+      </div>
+
+      <button class="btn-refresh" (click)="cargarReportes()" [disabled]="cargando">
+        <span [class.spinning]="cargando">↺</span>
+        {{ cargando ? 'Cargando...' : 'Actualizar' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="estado-vacio" *ngIf="!cargando && reportesFiltrados.length === 0">
+    <span class="vacio-icon">📭</span>
+    <p>{{ busqueda ? 'Sin resultados para "' + busqueda + '"' : 'No hay reportes enviados aún' }}</p>
+  </div>
+
+  <div class="skeleton-wrap" *ngIf="cargando">
+    <div class="skeleton-row" *ngFor="let i of [1,2,3]"></div>
+  </div>
+
+  <div class="tabla-scroll" *ngIf="!cargando && reportesFiltrados.length > 0">
+    <table class="admin-tabla">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Empresa</th>
+          <th>Ingresos</th>
+          <th>Egresos</th>
+          <th>Utilidad neta</th>
+          <th>Margen</th>
+          <th>Fecha</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of reportesFiltrados; trackBy: trackByReporte" (click)="seleccionar(r)" class="tabla-row">
+          <td>
+            <div class="usuario-cell">
+              <div class="mini-avatar">{{ r.nombre?.charAt(0)?.toUpperCase() }}</div>
+              <div>
+                <span class="usuario-nombre">{{ r.nombre }}</span>
+                <span class="usuario-correo">{{ r.correo }}</span>
+              </div>
+            </div>
+          </td>
+          <td class="td-empresa">{{ r.empresa || '—' }}</td>
+          <td class="td-verde">${{ r.total_ingreso | number:'1.2-2' }}</td>
+          <td class="td-rojo">${{ r.total_egreso | number:'1.2-2' }}</td>
+          <td [class.td-verde]="r.utilidad_neta >= 0"
+              [class.td-rojo]="r.utilidad_neta < 0">
+            ${{ r.utilidad_neta | number:'1.2-2' }}
+          </td>
+          <td>
+            <span class="badge-margen"
+                  [class.badge-ok]="r.margen_utilidad >= 20"
+                  [class.badge-warn]="r.margen_utilidad >= 0 && r.margen_utilidad < 20"
+                  [class.badge-bad]="r.margen_utilidad < 0">
+              {{ r.margen_utilidad }}%
+            </span>
+          </td>
+          <td class="td-fecha">{{ r.fecha | date:'dd/MM/yy HH:mm' }}</td>
+          <td>
+            <button class="btn-ver" (click)="seleccionar(r); $event.stopPropagation()">
+              Ver →
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="modal-overlay" *ngIf="reporteSeleccionado" (click)="cerrar()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-user-info">
+        <div class="modal-avatar">{{ reporteSeleccionado.nombre?.charAt(0)?.toUpperCase() }}</div>
+        <div>
+          <h3 class="modal-nombre">{{ reporteSeleccionado.nombre }}</h3>
+          <span class="modal-meta">
+            {{ reporteSeleccionado.correo }}
+            <span *ngIf="reporteSeleccionado.empresa"> · {{ reporteSeleccionado.empresa }}</span>
+          </span>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="btn-ver" (click)="exportarPDF()">Exportar PDF</button>
+        <button class="modal-cerrar" (click)="cerrar()">✕</button>
+      </div>
+    </div>
+
+    <div class="modal-kpis">
+      <div class="modal-kpi ingreso">
+        <span class="modal-kpi-label">Ingresos</span>
+        <span class="modal-kpi-val">${{ reporteSeleccionado.total_ingreso | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="modal-kpi egreso">
+        <span class="modal-kpi-label">Egresos</span>
+        <span class="modal-kpi-val">${{ reporteSeleccionado.total_egreso | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="modal-kpi utilidad"
+           [class.modal-kpi-neg]="reporteSeleccionado.utilidad_neta < 0">
+        <span class="modal-kpi-label">Utilidad neta</span>
+        <span class="modal-kpi-val">${{ reporteSeleccionado.utilidad_neta | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="modal-kpi margen">
+        <span class="modal-kpi-label">Margen</span>
+        <span class="modal-kpi-val">{{ reporteSeleccionado.margen_utilidad }}%</span>
+      </div>
+    </div>
+
+    <div class="modal-body">
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h4 class="modal-subtitulo">Resumen ingresos vs egresos</h4>
+          <canvas #chartResumen></canvas>
+        </div>
+
+        <div class="chart-card">
+          <h4 class="modal-subtitulo">Egresos por categoría</h4>
+          <canvas #chartCategorias></canvas>
+        </div>
+
+        <div class="chart-card chart-full">
+          <h4 class="modal-subtitulo">Evolución por período</h4>
+          <canvas #chartEvolucion></canvas>
+        </div>
+      </div>
+
+      <div class="modal-tabla-wrap">
+        <h4 class="modal-subtitulo">Egresos por categoría</h4>
+        <table class="modal-tabla" *ngIf="getCategoria(reporteSeleccionado).length > 0; else sinCat">
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th>Monto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cat of getCategoria(reporteSeleccionado)">
+              <td>{{ cat.categoria }}</td>
+              <td class="td-rojo">${{ cat.monto | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #sinCat>
+          <p class="sin-datos">Sin egresos por categoría</p>
+        </ng-template>
+      </div>
+
+      <div class="modal-tabla-wrap">
+        <h4 class="modal-subtitulo">Evolución por período</h4>
+        <table class="modal-tabla" *ngIf="getEvolucion(reporteSeleccionado).length > 0; else sinEvo">
+          <thead>
+            <tr>
+              <th>Período</th>
+              <th>Ingreso</th>
+              <th>Egreso</th>
+              <th>Utilidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of getEvolucion(reporteSeleccionado)">
+              <td class="td-periodo">{{ e.periodo }}</td>
+              <td class="td-verde">${{ e.ingreso | number:'1.2-2' }}</td>
+              <td class="td-rojo">${{ (e.egreso ?? e.gasto) | number:'1.2-2' }}</td>
+              <td [class.td-verde]="(e.utilidad ?? (e.ingreso - (e.egreso ?? e.gasto))) >= 0"
+                  [class.td-rojo]="(e.utilidad ?? (e.ingreso - (e.egreso ?? e.gasto))) < 0">
+                ${{ (e.utilidad ?? (e.ingreso - (e.egreso ?? e.gasto))) | number:'1.2-2' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #sinEvo>
+          <p class="sin-datos">Sin datos de evolución</p>
+        </ng-template>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <span class="modal-fecha">Reporte enviado: {{ reporteSeleccionado.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+      <button class="btn-cerrar-modal" (click)="cerrar()">Cerrar</button>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,151 @@
+<div class="dashboard-wrapper" *ngIf="dashboard">
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-ingreso">
+      <div class="kpi-icon">↑</div>
+      <div class="kpi-body">
+        <span class="kpi-label">Ingresos Totales</span>
+        <span class="kpi-valor">${{ dashboard.total_ingreso | number:'1.2-2' }}</span>
+        <span class="kpi-sub" *ngIf="dashboard.meta_ingresos > 0">
+          {{ dashboard.avance_meta }}% de meta
+        </span>
+      </div>
+      <div class="kpi-bar">
+        <div class="kpi-bar-fill ingreso" [style.width.%]="min(dashboard.avance_meta, 100)"></div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-egreso">
+      <div class="kpi-icon">↓</div>
+      <div class="kpi-body">
+        <span class="kpi-label">Egresos Totales</span>
+        <span class="kpi-valor">${{ dashboard.total_egreso | number:'1.2-2' }}</span>
+        <span class="kpi-sub" *ngIf="dashboard.presupuesto_total > 0">
+          {{ dashboard.avance_presupuesto }}% del presupuesto
+        </span>
+      </div>
+      <div class="kpi-bar">
+        <div class="kpi-bar-fill egreso" [style.width.%]="min(dashboard.avance_presupuesto, 100)"></div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-utilidad" [class.kpi-negativo]="dashboard.utilidad_neta < 0">
+      <div class="kpi-icon">≡</div>
+      <div class="kpi-body">
+        <span class="kpi-label">Utilidad Neta</span>
+        <span class="kpi-valor">${{ dashboard.utilidad_neta | number:'1.2-2' }}</span>
+        <span class="kpi-sub">Margen: {{ dashboard.margen_utilidad }}%</span>
+      </div>
+      <div class="kpi-bar">
+        <div class="kpi-bar-fill utilidad" [style.width.%]="min(dashboard.margen_utilidad, 100)"></div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-consumo">
+      <div class="kpi-icon">%</div>
+      <div class="kpi-body">
+        <span class="kpi-label">Gasto / Ingreso</span>
+        <span class="kpi-valor">{{ dashboard.pct_utilizado }}%</span>
+        <span class="kpi-sub">del ingreso utilizado</span>
+      </div>
+      <div class="kpi-bar">
+        <div class="kpi-bar-fill consumo" [style.width.%]="min(dashboard.pct_utilizado, 100)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="graficos-grid">
+
+    <!-- G1: Evolución temporal -->
+    <div class="grafico-card span-2">
+      <div class="grafico-header">
+        <span class="grafico-titulo">Evolución financiera por período</span>
+        <span class="grafico-badge">Línea de tiempo</span>
+      </div>
+      <div class="grafico-wrap h-280">
+        <canvas id="grafico1"></canvas>
+      </div>
+    </div>
+
+    <!-- G2: Egresos por categoría -->
+    <div class="grafico-card">
+      <div class="grafico-header">
+        <span class="grafico-titulo">Egresos por categoría</span>
+        <span class="grafico-badge">Barras</span>
+      </div>
+      <div class="grafico-wrap h-260">
+        <canvas id="grafico2"></canvas>
+      </div>
+    </div>
+
+    <!-- G3: Tipos de ingreso -->
+    <div class="grafico-card">
+      <div class="grafico-header">
+        <span class="grafico-titulo">Composición de ingresos</span>
+        <span class="grafico-badge">Donut</span>
+      </div>
+      <div class="grafico-wrap h-260">
+        <canvas id="grafico3"></canvas>
+      </div>
+    </div>
+
+    <!-- G4: Utilidad por período -->
+    <div class="grafico-card">
+      <div class="grafico-header">
+        <span class="grafico-titulo">Utilidad neta por período</span>
+        <span class="grafico-badge">Barras</span>
+      </div>
+      <div class="grafico-wrap h-260">
+        <canvas id="grafico4"></canvas>
+      </div>
+    </div>
+
+    <!-- G5: Egresos por área -->
+    <div class="grafico-card">
+      <div class="grafico-header">
+        <span class="grafico-titulo">Egresos por área</span>
+        <span class="grafico-badge">Donut</span>
+      </div>
+      <div class="grafico-wrap h-260">
+        <canvas id="grafico5"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tabla detalle -->
+  <div class="tabla-section">
+    <h3 class="tabla-titulo">Detalle de egresos por categoría</h3>
+    <table class="tabla-empresa">
+      <thead>
+        <tr>
+          <th>Categoría</th>
+          <th>Monto</th>
+          <th>% del total</th>
+          <th>Indicador</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cat of dashboard.por_categoria">
+          <td class="td-categoria">{{ cat.categoria }}</td>
+          <td class="td-monto">${{ cat.monto | number:'1.2-2' }}</td>
+          <td class="td-pct">{{ porcentaje(cat.monto) }}%</td>
+          <td class="td-bar">
+            <div class="tabla-bar">
+              <div class="tabla-bar-fill" [style.width.%]="porcentaje(cat.monto)"></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="dashboard-empty" *ngIf="!dashboard">
+  <div class="empty-icon">📊</div>
+  <p>Carga el dashboard para ver los indicadores financieros</p>
+  <button class="btn-cargar" (click)="cargar()">Cargar Dashboard</button>
+</div>

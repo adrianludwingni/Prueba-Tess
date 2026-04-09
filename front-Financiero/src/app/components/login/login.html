@@ -1,0 +1,26 @@
+<div class="login-container">
+  <h2>Iniciar Sesión</h2>
+  <form (ngSubmit)="login()">
+
+    <div>
+      <label>Correo</label>
+      <input type="email" [(ngModel)]="loginData.correo" name="correo">
+    </div>
+
+    <div>
+      <label>Contraseña</label>
+      <input type="password" [(ngModel)]="loginData.password" name="password">
+    </div>
+
+    <div *ngIf="mostrarPassword2">
+      <label>Segunda contraseña admin</label>
+      <input type="password" [(ngModel)]="loginData.password2" name="password2">
+    </div>
+
+    <button type="submit">Ingresar</button>
+
+    <p *ngIf="mensaje">{{ mensaje }}</p>
+
+  </form>
+  <p><a routerLink="/Registro">¿No tienes cuenta? Regístrate aquí</a></p>
+</div>

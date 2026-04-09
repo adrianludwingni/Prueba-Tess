@@ -1,0 +1,211 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
+
+:host {
+  --bg:      #0b0c10;
+  --surface: #111318;
+  --surface2:#181b22;
+  --border:  #1f2330;
+  --accent:  #c8f04a;
+  --income:  #4af0c8;
+  --expense: #f04a8a;
+  --text:    #e8eaf0;
+  --muted:   #5a5f72;
+
+  display: block;
+  background: var(--bg);
+  min-height: 100vh;
+  padding: 40px 32px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(200,240,74,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,240,74,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  animation: fadeDown 0.5s ease both;
+
+  &::after {
+    content: 'Sistema de Gestión Financiera';
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--accent);
+  color: #0b0c10;
+  border: none;
+  padding: 13px 28px;
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin: 24px 0 40px;
+  position: relative;
+  z-index: 1;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  animation: fadeDown 0.5s 0.1s ease both;
+
+  &::before { content: '↻'; font-size: 1rem; }
+
+  &:hover {
+    background: #d9ff55;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(200,240,74,0.3);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.dashboard { position: relative; z-index: 1; }
+
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 32px;
+  animation: fadeUp 0.5s 0.2s ease both;
+
+  @media (max-width: 700px) { grid-template-columns: 1fr; }
+}
+
+.resumen-card {
+  background: var(--surface);
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  transition: background 0.2s;
+
+  &:hover { background: var(--surface2); }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  &.ingreso::after { background: var(--income); }
+  &.gasto::after   { background: var(--expense); }
+  &.saldo::after   { background: var(--accent); }
+}
+
+.card-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.card-valor {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.2rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+
+  .ingreso & { color: var(--income); }
+  .gasto &   { color: var(--expense); }
+  .saldo &   { color: var(--accent); }
+}
+
+.graficos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+  background: var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  animation: fadeUp 0.5s 0.3s ease both;
+
+  @media (max-width: 800px) { grid-template-columns: 1fr; }
+}
+
+.grafico-card {
+  background: var(--surface);
+  padding: 28px;
+  transition: background 0.2s;
+
+  &:hover { background: var(--surface2); }
+
+  &.full-width {
+    grid-column: 1 / -1;
+    @media (max-width: 800px) { grid-column: 1; }
+  }
+}
+
+.grafico-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.grafico-titulo {
+  font-size: 0.68rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.grafico-tag {
+  font-size: 0.62rem;
+  padding: 4px 12px;
+  border-radius: 100px;
+  letter-spacing: 0.08em;
+  border: 1px solid;
+
+  &.pie  { color: var(--expense); border-color: rgba(240,74,138,0.3);  background: rgba(240,74,138,0.06); }
+  &.bar  { color: var(--accent);  border-color: rgba(200,240,74,0.3);  background: rgba(200,240,74,0.06); }
+  &.line { color: var(--income);  border-color: rgba(74,240,200,0.3);  background: rgba(74,240,200,0.06); }
+}
+
+.grafico-wrap {
+  position: relative;
+  height: 300px;
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
